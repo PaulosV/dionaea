@@ -94,10 +94,14 @@ class SipConfig(object):
             self._cur.execute("INSERT INTO users (username, password, personality, pickup_delay_min, pickup_delay_max, action, sdp) VALUES ('^[0-9]{1,12}$', '', 'default', 5, 10, 'default', 'default')")
             # example with password
             self._cur.execute("INSERT INTO users (username, password, personality, pickup_delay_min, pickup_delay_max, action, sdp) VALUES ('^pw[0-9]{1,12}$', 'password', 'default', 5, 10, 'default', 'default')")
+            # commit to database to avoid "database is locked" error
+            self._conn.commit()
 
         if not self._table_exists("sdp"):
             self._cur.execute("CREATE TABLE IF NOT EXISTS sdp (name STRING, sdp STRING)")
             self._cur.execute("INSERT INTO sdp (name, sdp) VALUES ('default', ?)", (DEFAULT_SDP,))
+            # commit to database to avoid "database is locked" error
+            self._conn.commit()
 
         # set default values
         self.personalities = {
