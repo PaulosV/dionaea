@@ -370,9 +370,9 @@ class SipCall(connection):
                             name,
                             self,
                             self.__session,
-                            self.__session.local.host,
+                            self.local.host,
                             0, # random port
-                            self.__session.remote.host,
+                            self.remote.host,
                             media.port,
                             pcap = pcap,
                             bistream_enabled = bistream_enabled
