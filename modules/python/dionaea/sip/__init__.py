@@ -450,11 +450,9 @@ class SipCall(connection):
             if timer is None:
                 continue
 
-            logger.debug("SipCall timer {} active {} pending {}".format(timer,timer.active,timer.pending))
-            #if timer.active == True or timer.pending == True:
-            #    logger.warn("SipCall Stopping {}".format(name))
+            logger.debug("SipCall timer {} stopping".format(timer))
 
-            timer.stop()
+            timer.cancel()
         self._timers = {}
 
         # close rtpStream
