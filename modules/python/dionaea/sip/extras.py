@@ -251,45 +251,48 @@ class SipConfig(object):
         Fetch the SDP content from the database and add missing values.
         """
         logger.debug("Loading sdp with: params = %s, media_ports %s", pprint.pformat(params), pprint.pformat(media_ports))
-        ret = self._cur.execute("SELECT sdp FROM sdp WHERE name='?'")
-        data = ret.fetchone()
-
-        if data is None:
-            # try to fetch the default sdp from the db
-            ret = self._cur.execute("SELECT sdp FROM sdp WHERE name='default'")
+        
+        with sqlite3.connect(self.users) as conn:
+            ret = conn.execute("SELECT sdp FROM sdp WHERE name='?'")
             data = ret.fetchone()
 
-        if data is None:
-            data = (DEFAULT_SDP,)
+            if data is None:
+                # try to fetch the default sdp from the db
+                ret = conn.execute("SELECT sdp FROM sdp WHERE name='default'")
+                data = ret.fetchone()
 
-        sdp = data[0]
-        for n,v in media_ports.items():
-            if v is None:
-                sdp = re.sub("\[" + n +"\].*\[\/" + n + "\]", "", sdp, 0, re.DOTALL)
-            else:
-                params[n] = v
+            if data is None:
+                data = (DEFAULT_SDP,)
 
-        sdp = sdp.format(**params)
-        return bytes(sdp, "utf-8")
+            sdp = data[0]
+            for n,v in media_ports.items():
+                if v is None:
+                    sdp = re.sub("\[" + n +"\].*\[\/" + n + "\]", "", sdp, 0, re.DOTALL)
+                else:
+                    params[n] = v
+
+            sdp = sdp.format(**params)
+            return bytes(sdp, "utf-8")
 
     def get_sdp_media_port_names(self, name):
         """
         Find all media ports.
         """
-        ret = self._cur.execute("SELECT sdp FROM sdp WHERE name='?'")
-        data = ret.fetchone()
-
-        if data is None:
-            # try to fetch the default sdp from the db
-            ret = self._cur.execute("SELECT sdp FROM sdp WHERE name='default'")
+        with sqlite3.connect(self.users) as conn:
+            ret = conn.execute("SELECT sdp FROM sdp WHERE name='?'")
             data = ret.fetchone()
 
-        if data is None:
-            data = (DEFAULT_SDP,)
+            if data is None:
+                # try to fetch the default sdp from the db
+                ret = conn.execute("SELECT sdp FROM sdp WHERE name='default'")
+                data = ret.fetchone()
 
-        media_ports = re.findall("{(audio_port[0-9]*|video_port[0-9]*)}", data[0])
+            if data is None:
+                data = (DEFAULT_SDP,)
 
-        return media_ports
+            media_ports = re.findall("{(audio_port[0-9]*|video_port[0-9]*)}", data[0])
+
+            return media_ports
 
     def is_handled_by_personality(self, handler_name, personality = "default"):
         """
