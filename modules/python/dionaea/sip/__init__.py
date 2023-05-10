@@ -18,6 +18,7 @@ import tempfile
 
 from dionaea.core import connection, g_dionaea, incident
 from dionaea import Timer, ServiceLoader
+from dionaea.exception import ServiceConfigError
 
 from dionaea.sip.extras import msg_to_icd, SipConfig, ErrorWithResponse
 
@@ -67,7 +68,12 @@ class SIPService(ServiceLoader):
             if ports is None:
                 continue
             for port in ports:
-                daemon = SipSession(proto=proto, config=config)
+                daemon = SipSession(proto=proto)
+                try:
+                    daemon.apply_config(config=config)
+                except ServiceConfigError as e:
+                    logger.error(e.msg, *e.args)
+                    continue
                 daemon.bind(addr, port, iface=iface)
                 daemon.listen()
                 daemons.append(daemon)
@@ -561,21 +567,21 @@ class SipSession(connection):
     ESTABLISHED, CLOSED = range(2)
 
     shared_config_values = [
-        "config"
+        "config",
+        "personality"
     ]
 
-    def __init__(self, proto = None, config=None):
+    def __init__(self, proto = None):
         logger.debug("{!s} __init__".format(self))
 
         connection.__init__(self, proto)
-        self.config = SipConfig(config=config)
-
-        self.personality = self.config.get_personality_by_address(self.local.host)
-
-        logger.info("SIP Session created with personality '{}'".format(self.personality))
         self._auth = None
         self._state = None
 
+    def apply_config(self, config):
+        self.config = SipConfig(config=config)
+        self.personality = self.config.get_personality_by_address(self.local.host)
+        logger.info("SIP Session created with personality '{}'".format(self.personality))
 
     def handle_established(self):
         logger.debug("{!s} handle_established".format(self))
