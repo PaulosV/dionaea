@@ -239,7 +239,7 @@ class SipCall(connection):
     """
     CLOSED, SESSION_SETUP, ACTIVE_SESSION, SESSION_TEARDOWN, INVITE, INVITE_TRYING, INVITE_RINGING, INVITE_CANCEL, CALL = range(9)
 
-    def __init__(self, proto, call_id, session, invite_message):
+    def __init__(self, proto=None, call_id=None, session=None, invite_message=None):
         logger.debug("{!s} __init__".format(self))
 
         logger.debug("SipCall {} session {} ".format(self, session))
